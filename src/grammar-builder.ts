@@ -1,21 +1,26 @@
-// QUESTIONS
-// Do we really need a separate array of productions (since all of this
-// info is contained within the `entry` value)?
+import {
+  Grammar,
+  Production,
+  ProductionName,
+  Expansion,
+  ExpansionKind,
+} from './types/grammar';
 
 export class GrammarBuilder {
-  private entry: WithAllProds<Production>;
-  private productions: (Production | LatentProduction)[] = [];
+  private entry: ProductionName;
+  private productions: Production[] = [];
 
-  addProduction(name: string, expansion: Expansion | LatentExpansion): this {
+  addProduction(name: string, expansion: Expansion): this {
     if (this.productions.find(prod => prod.name === name)) {
       throw new Error(`A production with the name "${name}" already exists.`);
     }
 
-    this.productions.push({ name, expansion: expansion as any });
+    this.productions.push({ name, expansion });
+
     return this;
   }
 
-  startWith(entry: WithAllProds<Production>): this {
+  startWith(entry: ProductionName): this {
     this.entry = entry;
 
     return this;
@@ -25,29 +30,21 @@ export class GrammarBuilder {
     const productions = this.productions.reduce(
       (acc, prod) => ({
         ...acc,
-        // QUESTION Is this clone necessary?
-        [prod.name]: { ...prod },
+        [prod.name]: prod,
       }),
       {}
     );
 
-    Object.values(productions).forEach((prod: any) => {
-      Object.entries(prod.expansion).forEach(([key, value]) => {
-        if (
-          // Make sure this includes all relevant keys
-          ['alts', 'seq', 'of'].includes(key) &&
-          typeof value === 'function'
-        ) {
-          prod.expansion[key] = value(productions);
-        }
-      });
-    });
+    if (!this.entry) {
+      throw new Error(
+        'No entry production selected.\n(did you call `.startWith(...)`?).'
+      );
+    }
 
-    const entry =
-      typeof this.entry === 'function' ? this.entry(productions) : this.entry;
+    this.check(productions, this.entry);
 
     return {
-      entry,
+      entry: this.entry,
       productions,
     };
   }
@@ -58,153 +55,84 @@ export class GrammarBuilder {
     };
   }
 
-  static Terminal(
-    isValid?: TerminalValidator,
-    transform?: TerminalTransformer
-  ): Expansion {
+  static Terminal(pattern?: RegExp): Expansion {
     return {
       kind: ExpansionKind.Terminal,
-      isValid,
-      transform,
+      pattern,
     };
   }
 
-  static Alt(alts: WithAllProds<Production[]>): Expansion | LatentExpansion {
+  static Alt(...alts: ProductionName[]): Expansion {
     return {
       kind: ExpansionKind.Alt,
       alts,
     };
   }
 
-  static Seq(seq: WithAllProds<Production[]>): Expansion | LatentExpansion {
+  static Seq(...seq: ProductionName[]): Expansion {
     return {
       kind: ExpansionKind.Seq,
       seq,
     };
   }
 
-  static Star(of: WithAllProds<Production>): Expansion | LatentExpansion {
+  static Star(of: ProductionName): Expansion {
     return {
       kind: ExpansionKind.Star,
       of,
     };
   }
 
-  static Plus(of: WithAllProds<Production>): Expansion | LatentExpansion {
+  static Plus(of: ProductionName): Expansion {
     return {
       kind: ExpansionKind.Plus,
       of,
     };
   }
 
-  static Optional(of: WithAllProds<Production>): Expansion | LatentExpansion {
+  static Optional(of: ProductionName): Expansion {
     return {
       kind: ExpansionKind.Optional,
       of,
     };
   }
+
+  private check(
+    productions: { [name: string]: Production },
+    entry: ProductionName
+  ): void {
+    if (!(entry in productions)) {
+      throw new Error(
+        `Entry production doesn't exist.\n(have you defined a production named \`${entry}\`?).`
+      );
+    }
+
+    Object.values(productions).forEach(prod => {
+      const references = this.getReferences(prod);
+
+      for (let ref of references) {
+        if (!(ref in productions)) {
+          throw new Error(
+            `Production \`${prod.name}\` references \`${ref}\`, but no such production exists.`
+          );
+        }
+      }
+    });
+  }
+
+  private getReferences(production: Production): ProductionName[] {
+    switch (production.expansion.kind) {
+      case ExpansionKind.Epsilon:
+      case ExpansionKind.Terminal:
+        return [];
+      case ExpansionKind.Alt:
+        return production.expansion.alts;
+      case ExpansionKind.Seq:
+        return production.expansion.seq;
+      case ExpansionKind.Star:
+      case ExpansionKind.Plus:
+      case ExpansionKind.Optional:
+        return [production.expansion.of];
+    }
+  }
 }
-
-export type WithAllProds<T> = T | ((allProds: AllProds) => T);
-
-export type AllProds = { [name: string]: Production };
-
-export interface Grammar {
-  entry: Production;
-  productions: AllProds;
-}
-
-export interface Production {
-  name: string;
-  expansion: Expansion;
-}
-
-export interface LatentProduction {
-  name: string;
-  expansion: LatentExpansion;
-}
-
-export type Expansion = Epsilon | Terminal | Alt | Seq | Star | Plus | Optional;
-
-export type LatentExpansion =
-  | LatentAlt
-  | LatentSeq
-  | LatentStar
-  | LatentPlus
-  | LatentOptional;
-
-export interface Epsilon {
-  kind: ExpansionKind.Epsilon;
-}
-
-export interface Terminal {
-  kind: ExpansionKind.Terminal;
-  isValid?: TerminalValidator;
-  transform?: TerminalTransformer;
-}
-
-export type TerminalValidator = (input: string) => ValidationError[];
-
-export type TerminalTransformer = (input: string) => any;
-
-export interface Alt {
-  kind: ExpansionKind.Alt;
-  alts: Production[];
-}
-
-export interface LatentAlt {
-  kind: ExpansionKind.Alt;
-  alts: WithAllProds<Production[]>;
-}
-
-export interface Seq {
-  kind: ExpansionKind.Seq;
-  seq: Production[];
-}
-
-export interface LatentSeq {
-  kind: ExpansionKind.Seq;
-  seq: WithAllProds<Production[]>;
-}
-
-export interface Star {
-  kind: ExpansionKind.Star;
-  of: Production;
-}
-
-export interface LatentStar {
-  kind: ExpansionKind.Star;
-  of: WithAllProds<Production>;
-}
-
-export interface Plus {
-  kind: ExpansionKind.Plus;
-  of: Production;
-}
-
-export interface LatentPlus {
-  kind: ExpansionKind.Plus;
-  of: WithAllProds<Production>;
-}
-
-export interface Optional {
-  kind: ExpansionKind.Optional;
-  of: Production;
-}
-
-export interface LatentOptional {
-  kind: ExpansionKind.Optional;
-  of: WithAllProds<Production>;
-}
-
-export enum ExpansionKind {
-  Epsilon = 'Epsilon',
-  Terminal = 'Terminal',
-  Alt = 'Alt',
-  Seq = 'Seq',
-  Star = 'Star',
-  Plus = 'Plus',
-  Optional = 'Optional',
-}
-
-export type ValidationError = string;
