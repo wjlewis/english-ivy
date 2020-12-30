@@ -1,0 +1,18 @@
+.eq,
+.sum,
+.prod {
+  display: flex;
+  align-items: center;
+}
+
+.focused {
+  outline: 1px solid red;
+}
+
+.incomplete {
+  width: 20px;
+  height: 10px;
+  background-color: #aaa;
+  border: 1px solid #999;
+  border-radius: 2px;
+}
