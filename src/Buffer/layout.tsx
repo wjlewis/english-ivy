@@ -1,8 +1,11 @@
 import React from 'react';
 import classNames from 'classnames';
 import { BufferState } from './index';
-import { LayoutFn } from '../types/misc';
-import { Tree, TreeKind } from '../types/tree';
+import { Tree, TreeKind } from '../tree-zipper';
+
+export type LayoutFn = (tree: Tree, self: RecLayoutFn) => JSX.Element;
+
+export type RecLayoutFn = (tree: Tree) => JSX.Element;
 
 export interface LayoutProps {
   state: BufferState;

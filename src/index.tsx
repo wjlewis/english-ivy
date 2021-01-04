@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom';
 import classNames from 'classnames';
 import Buffer from './Buffer';
 import { GrammarBuilder as Gb } from './grammar-builder';
-import { Tree, TreeKind } from './types/tree';
-import { RecLayoutFn } from './types/layout';
+import { RecLayoutFn } from './Buffer/layout';
+import { Tree, TreeKind } from './tree-zipper';
 import './index.css';
 
 const gram = new Gb()
