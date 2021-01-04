@@ -8,11 +8,7 @@ export interface Production {
   expansion: Expansion;
 }
 
-export type Expansion = Epsilon | Terminal | Alt | Seq | Star | Plus | Optional;
-
-export interface Epsilon {
-  kind: ExpansionKind.Epsilon;
-}
+export type Expansion = Terminal | Alt | Seq | Star | Plus | Optional;
 
 export interface Terminal {
   kind: ExpansionKind.Terminal;
@@ -45,7 +41,6 @@ export interface Optional {
 }
 
 export enum ExpansionKind {
-  Epsilon = 'Epsilon',
   Terminal = 'Terminal',
   Alt = 'Alt',
   Seq = 'Seq',

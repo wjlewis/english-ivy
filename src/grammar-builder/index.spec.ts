@@ -1,5 +1,5 @@
-import { GrammarBuilder as Gb } from './grammar-builder';
-import { ExpansionKind } from './types/grammar';
+import { GrammarBuilder as Gb } from './index';
+import { ExpansionKind } from '../types/grammar';
 
 describe('GrammarBuilder', () => {
   it('Builds the expected grammar', () => {

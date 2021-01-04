@@ -4,7 +4,7 @@ import {
   ProductionName,
   Expansion,
   ExpansionKind,
-} from './types/grammar';
+} from '../types/grammar';
 
 export class GrammarBuilder {
   private entry: ProductionName;
@@ -27,6 +27,14 @@ export class GrammarBuilder {
   }
 
   build(): Grammar {
+    if (!this.entry) {
+      throw new Error(
+        'No entry production selected.\n(did you call `.startWith(...)`?).'
+      );
+    }
+
+    this.check(this.productions, this.entry);
+
     const productions = this.productions.reduce(
       (acc, prod) => ({
         ...acc,
@@ -35,23 +43,9 @@ export class GrammarBuilder {
       {}
     );
 
-    if (!this.entry) {
-      throw new Error(
-        'No entry production selected.\n(did you call `.startWith(...)`?).'
-      );
-    }
-
-    this.check(productions, this.entry);
-
     return {
       entry: this.entry,
       productions,
-    };
-  }
-
-  static Epsilon(): Expansion {
-    return {
-      kind: ExpansionKind.Epsilon,
     };
   }
 
@@ -97,21 +91,20 @@ export class GrammarBuilder {
     };
   }
 
-  private check(
-    productions: { [name: string]: Production },
-    entry: ProductionName
-  ): void {
-    if (!(entry in productions)) {
+  private check(productions: Production[], entry: ProductionName): void {
+    const productionNames = productions.map(prod => prod.name);
+
+    if (!productionNames.includes(entry)) {
       throw new Error(
         `Entry production doesn't exist.\n(have you defined a production named \`${entry}\`?).`
       );
     }
 
-    Object.values(productions).forEach(prod => {
+    productions.forEach(prod => {
       const references = this.getReferences(prod);
 
       for (let ref of references) {
-        if (!(ref in productions)) {
+        if (!productionNames.includes(ref)) {
           throw new Error(
             `Production \`${prod.name}\` references \`${ref}\`, but no such production exists.`
           );
@@ -122,7 +115,6 @@ export class GrammarBuilder {
 
   private getReferences(production: Production): ProductionName[] {
     switch (production.expansion.kind) {
-      case ExpansionKind.Epsilon:
       case ExpansionKind.Terminal:
         return [];
       case ExpansionKind.Alt:

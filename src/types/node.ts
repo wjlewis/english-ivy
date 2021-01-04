@@ -1,21 +1,31 @@
-import { TreeKind, TreeId } from './tree';
+import { Id } from './misc';
+import { ProductionName } from './grammar';
 
-export type Node = InnerNode | LeafNode;
+export type Node = Inner | Alt | Leaf;
 
-export interface InnerNode {
-  id: TreeId;
-  kind: TreeKind.Inner;
-  type: string;
-  children: TreeId[];
-  parent: null | TreeId;
-  complete: boolean;
+export interface Inner extends Common {
+  kind: NodeKind.Inner;
+  children: Id[];
 }
 
-export interface LeafNode {
-  id: TreeId;
-  kind: TreeKind.Leaf;
-  type: string;
+export interface Alt extends Common {
+  kind: NodeKind.Alt;
+  child: null | Id;
+}
+
+export interface Leaf extends Common {
+  kind: NodeKind.Leaf;
   content: null | string;
-  parent: null | TreeId;
-  complete: boolean;
+}
+
+export enum NodeKind {
+  Inner = 'Inner',
+  Alt = 'Alt',
+  Leaf = 'Leaf',
+}
+
+export interface Common {
+  id: Id;
+  parent: null | Id;
+  prod: ProductionName;
 }

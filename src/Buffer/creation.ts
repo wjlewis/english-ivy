@@ -6,12 +6,13 @@ import {
   Production,
   Seq,
 } from '../types/grammar';
-import { TreeId, TreeKind } from '../types/tree';
+import { TreeKind } from '../types/tree';
 import { Node } from '../types/node';
+import { Id } from '../types/misc';
 import { flatten1 } from '../tools';
 
 export interface NodePackage {
-  rootId: TreeId;
+  rootId: Id;
   nodes: Node[];
 }
 
@@ -20,7 +21,7 @@ export interface NodePackage {
 export function createProdInst(
   grammar: Grammar,
   prodName: string,
-  parent: null | TreeId
+  parent: null | Id
 ): NodePackage {
   const production = grammar.productions[prodName];
 
@@ -35,7 +36,7 @@ export function createProdInst(
     const node = {
       id,
       kind: TreeKind.Leaf as TreeKind.Leaf,
-      type: production.name,
+      prod: production.name,
       content: null,
       // A freshly created terminal node is initially incomplete
       complete: false,
@@ -47,7 +48,6 @@ export function createProdInst(
     switch (production.expansion.kind) {
       case ExpansionKind.Alt:
         return createSingle(production, parent, false);
-      case ExpansionKind.Epsilon:
       case ExpansionKind.Star:
       case ExpansionKind.Optional:
         return createSingle(production, parent, true);
@@ -61,7 +61,7 @@ export function createProdInst(
 
 function createSingle(
   production: Production,
-  parent: null | TreeId,
+  parent: null | Id,
   complete: boolean
 ): NodePackage {
   const id = uuid();
@@ -81,7 +81,7 @@ function createSingle(
 function createSeq(
   grammar: Grammar,
   production: Production,
-  parent: null | TreeId
+  parent: null | Id
 ): NodePackage {
   const id = uuid();
 
@@ -111,7 +111,7 @@ function createSeq(
 function createPlus(
   grammar: Grammar,
   production: Production,
-  parent: null | TreeId
+  parent: null | Id
 ): NodePackage {
   const id = uuid();
 

@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import Buffer from './Buffer';
 import { GrammarBuilder as Gb } from './grammar-builder';
 import { Tree, TreeKind } from './types/tree';
-import { RecLayoutFn } from './types/misc';
+import { RecLayoutFn } from './types/layout';
 import './index.css';
 
 const gram = new Gb()
@@ -22,7 +22,7 @@ const layout = (tree: Tree, self: RecLayoutFn): JSX.Element => {
   const { focused } = tree;
   switch (tree.kind) {
     case TreeKind.Inner:
-      switch (tree.type) {
+      switch (tree.prod) {
         case 'Eqs':
           return (
             <div className={classNames('eqs', { focused })}>
@@ -52,7 +52,7 @@ const layout = (tree: Tree, self: RecLayoutFn): JSX.Element => {
       }
       break;
     case TreeKind.Leaf:
-      switch (tree.type) {
+      switch (tree.prod) {
         case 'Name':
           return (
             <span className={classNames('name', { focused })}>
