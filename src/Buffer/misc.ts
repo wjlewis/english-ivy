@@ -1,5 +1,6 @@
 import { v4 as uuid } from 'uuid';
-import { Tree, TreeKind, TreeZipper } from '../tree-zipper';
+import { BufferState } from '.';
+import { Tree, TreeKind, TreeZipper, Inner } from '../tree-zipper';
 import { Grammar, ProductionName, ExpansionKind } from '../types/grammar';
 
 export type BufferTree = Tree<BufferTreeData, string>;
@@ -48,4 +49,48 @@ export function createInhabitant(
         children: [createInhabitant(grammar, prod.expansion.of)],
       };
   }
+}
+
+export function addChild(
+  state: BufferState,
+  prodName: ProductionName,
+  grammar: Grammar
+): BufferState {
+  const subtree = createInhabitant(grammar, prodName);
+
+  return {
+    ...state,
+    zipper: state.zipper.withFocus(focus => ({
+      ...focus,
+      children: [...(focus as Inner<BufferTreeData, string>).children, subtree],
+    })),
+  };
+}
+
+export function toFirstChild(state: BufferState): BufferState {
+  return {
+    ...state,
+    zipper: state.zipper.toFirstChild(),
+  };
+}
+
+export function toParent(state: BufferState): BufferState {
+  return {
+    ...state,
+    zipper: state.zipper.toParent(),
+  };
+}
+
+export function toNextSibling(state: BufferState): BufferState {
+  return {
+    ...state,
+    zipper: state.zipper.toNextSibling(),
+  };
+}
+
+export function toPrevSibling(state: BufferState): BufferState {
+  return {
+    ...state,
+    zipper: state.zipper.toPrevSibling(),
+  };
 }

@@ -2,6 +2,7 @@
   width: 50%;
   height: 90%;
   margin: 10px;
+  padding: 5%;
   box-sizing: border-box;
   border: 1px solid #aaa;
   border-radius: 4px;
@@ -10,4 +11,13 @@
 
 .buffer:focus {
   box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.2);
+}
+
+.todo {
+  width: 20px;
+  height: 10px;
+  border-radius: 2px;
+  background-color: #ddd;
+  border: 1px solid #aaa;
+  margin: 0 5px;
 }
