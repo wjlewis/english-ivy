@@ -8,21 +8,21 @@ export interface Production {
   expansion: Expansion;
 }
 
-export type Expansion = Terminal | Alt | Seq | Star | Plus | Optional;
+export type Expansion = Terminal | Sum | Product | Star | Plus;
 
 export interface Terminal {
   kind: ExpansionKind.Terminal;
   pattern?: RegExp;
 }
 
-export interface Alt {
-  kind: ExpansionKind.Alt;
-  alts: ProductionName[];
+export interface Sum {
+  kind: ExpansionKind.Sum;
+  variants: ProductionName[];
 }
 
-export interface Seq {
-  kind: ExpansionKind.Seq;
-  seq: ProductionName[];
+export interface Product {
+  kind: ExpansionKind.Product;
+  members: ProductionName[];
 }
 
 export interface Star {
@@ -35,18 +35,12 @@ export interface Plus {
   of: ProductionName;
 }
 
-export interface Optional {
-  kind: ExpansionKind.Optional;
-  of: ProductionName;
-}
-
 export enum ExpansionKind {
   Terminal = 'Terminal',
-  Alt = 'Alt',
-  Seq = 'Seq',
+  Sum = 'Sum',
+  Product = 'Record',
   Star = 'Star',
   Plus = 'Plus',
-  Optional = 'Optional',
 }
 
 export type ProductionName = string;

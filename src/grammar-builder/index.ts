@@ -10,7 +10,7 @@ export class GrammarBuilder {
   private entry: ProductionName;
   private productions: Production[] = [];
 
-  addProduction(name: string, expansion: Expansion): this {
+  where(name: string, expansion: Expansion): this {
     if (this.productions.find(prod => prod.name === name)) {
       throw new Error(`A production with the name "${name}" already exists.`);
     }
@@ -56,17 +56,17 @@ export class GrammarBuilder {
     };
   }
 
-  static Alt(...alts: ProductionName[]): Expansion {
+  static Sum(...variants: ProductionName[]): Expansion {
     return {
-      kind: ExpansionKind.Alt,
-      alts,
+      kind: ExpansionKind.Sum,
+      variants,
     };
   }
 
-  static Seq(...seq: ProductionName[]): Expansion {
+  static Product(...members: ProductionName[]): Expansion {
     return {
-      kind: ExpansionKind.Seq,
-      seq,
+      kind: ExpansionKind.Product,
+      members,
     };
   }
 
@@ -80,13 +80,6 @@ export class GrammarBuilder {
   static Plus(of: ProductionName): Expansion {
     return {
       kind: ExpansionKind.Plus,
-      of,
-    };
-  }
-
-  static Optional(of: ProductionName): Expansion {
-    return {
-      kind: ExpansionKind.Optional,
       of,
     };
   }
@@ -117,13 +110,12 @@ export class GrammarBuilder {
     switch (production.expansion.kind) {
       case ExpansionKind.Terminal:
         return [];
-      case ExpansionKind.Alt:
-        return production.expansion.alts;
-      case ExpansionKind.Seq:
-        return production.expansion.seq;
+      case ExpansionKind.Sum:
+        return production.expansion.variants;
+      case ExpansionKind.Product:
+        return production.expansion.members;
       case ExpansionKind.Star:
       case ExpansionKind.Plus:
-      case ExpansionKind.Optional:
         return [production.expansion.of];
     }
   }

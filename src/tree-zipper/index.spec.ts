@@ -4,18 +4,22 @@ describe('TreeZipper', () => {
   const tree: Tree<string, number> = {
     kind: TreeKind.Inner,
     data: 'A',
+    id: '0',
     children: [
       {
         kind: TreeKind.Inner,
         data: 'B',
+        id: '1',
         children: [
           {
             kind: TreeKind.Leaf,
             data: 'D',
+            id: '2',
             content: 1,
           },
           {
             kind: TreeKind.Todo,
+            id: '3',
             data: 'E',
           },
         ],
@@ -23,10 +27,12 @@ describe('TreeZipper', () => {
       {
         kind: TreeKind.Inner,
         data: 'C',
+        id: '4',
         children: [
           {
             kind: TreeKind.Leaf,
             data: 'F',
+            id: '5',
             content: 2,
           },
         ],
@@ -77,37 +83,46 @@ describe('TreeZipper', () => {
 
     expect(z5.getFocus().data).toBe('E1');
 
-    expect(z5.toTree()).toEqual({
-      kind: TreeKind.Inner,
-      data: 'A1',
-      children: [
-        {
-          kind: TreeKind.Inner,
-          data: 'B',
-          children: [
-            {
-              kind: TreeKind.Leaf,
-              data: 'D',
-              content: 1,
-            },
-            {
-              kind: TreeKind.Todo,
-              data: 'E1',
-            },
-          ],
-        },
-        {
-          kind: TreeKind.Inner,
-          data: 'C',
-          children: [
-            {
-              kind: TreeKind.Leaf,
-              data: 'F',
-              content: 42,
-            },
-          ],
-        },
-      ],
+    expect(z5.toTreePkg()).toEqual({
+      tree: {
+        kind: TreeKind.Inner,
+        data: 'A1',
+        id: '0',
+        children: [
+          {
+            kind: TreeKind.Inner,
+            data: 'B',
+            id: '1',
+            children: [
+              {
+                kind: TreeKind.Leaf,
+                data: 'D',
+                id: '2',
+                content: 1,
+              },
+              {
+                kind: TreeKind.Todo,
+                data: 'E1',
+                id: '3',
+              },
+            ],
+          },
+          {
+            kind: TreeKind.Inner,
+            data: 'C',
+            id: '4',
+            children: [
+              {
+                kind: TreeKind.Leaf,
+                data: 'F',
+                id: '5',
+                content: 42,
+              },
+            ],
+          },
+        ],
+      },
+      focused: '3',
     });
   });
 
@@ -115,6 +130,7 @@ describe('TreeZipper', () => {
     const z = TreeZipper.fromTree({
       kind: TreeKind.Inner,
       data: 0,
+      id: '0',
       children: [],
     });
 
@@ -124,6 +140,7 @@ describe('TreeZipper', () => {
         {
           kind: TreeKind.Todo,
           data: 1,
+          id: '1',
         },
       ],
     }));
@@ -135,6 +152,7 @@ describe('TreeZipper', () => {
     const z3 = z2.withFocus(t => ({
       kind: TreeKind.Leaf,
       data: 42,
+      id: '2',
       content: 'test',
     }));
 
@@ -149,6 +167,7 @@ describe('TreeZipper', () => {
         {
           kind: TreeKind.Todo,
           data: 5,
+          id: '3',
         },
       ],
     }));
@@ -157,20 +176,26 @@ describe('TreeZipper', () => {
 
     expect(z6.getFocus().data).toBe(5);
 
-    expect(z6.toTree()).toEqual({
-      kind: TreeKind.Inner,
-      data: 0,
-      children: [
-        {
-          kind: TreeKind.Leaf,
-          data: 42,
-          content: 'test',
-        },
-        {
-          kind: TreeKind.Todo,
-          data: 5,
-        },
-      ],
+    expect(z6.toTreePkg()).toEqual({
+      tree: {
+        kind: TreeKind.Inner,
+        data: 0,
+        id: '0',
+        children: [
+          {
+            kind: TreeKind.Leaf,
+            data: 42,
+            id: '2',
+            content: 'test',
+          },
+          {
+            kind: TreeKind.Todo,
+            data: 5,
+            id: '3',
+          },
+        ],
+      },
+      focused: '3',
     });
   });
 });

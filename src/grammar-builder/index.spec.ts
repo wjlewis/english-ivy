@@ -4,12 +4,12 @@ import { ExpansionKind } from '../types/grammar';
 describe('GrammarBuilder', () => {
   it('Builds the expected grammar', () => {
     const gram = new Gb()
-      .addProduction('Expr', Gb.Alt('Atom', 'Sum', 'Prod'))
-      .addProduction('Atom', Gb.Alt('Name', 'Num'))
-      .addProduction('Sum', Gb.Seq('Expr', 'Expr'))
-      .addProduction('Prod', Gb.Seq('Expr', 'Expr'))
-      .addProduction('Name', Gb.Terminal(/^\w[\w\d]*$/))
-      .addProduction('Num', Gb.Terminal(/^\d+$/))
+      .where('Expr', Gb.Sum('Atom', 'Sum', 'Prod'))
+      .where('Atom', Gb.Sum('Name', 'Num'))
+      .where('Sum', Gb.Product('Expr', 'Expr'))
+      .where('Prod', Gb.Product('Expr', 'Expr'))
+      .where('Name', Gb.Terminal(/^\w[\w\d]*$/))
+      .where('Num', Gb.Terminal(/^\d+$/))
       .startWith('Expr')
       .build();
 
@@ -19,29 +19,29 @@ describe('GrammarBuilder', () => {
         Expr: {
           name: 'Expr',
           expansion: {
-            kind: ExpansionKind.Alt,
-            alts: ['Atom', 'Sum', 'Prod'],
+            kind: ExpansionKind.Sum,
+            variants: ['Atom', 'Sum', 'Prod'],
           },
         },
         Atom: {
           name: 'Atom',
           expansion: {
-            kind: ExpansionKind.Alt,
-            alts: ['Name', 'Num'],
+            kind: ExpansionKind.Sum,
+            variants: ['Name', 'Num'],
           },
         },
         Sum: {
           name: 'Sum',
           expansion: {
-            kind: ExpansionKind.Seq,
-            seq: ['Expr', 'Expr'],
+            kind: ExpansionKind.Product,
+            members: ['Expr', 'Expr'],
           },
         },
         Prod: {
           name: 'Prod',
           expansion: {
-            kind: ExpansionKind.Seq,
-            seq: ['Expr', 'Expr'],
+            kind: ExpansionKind.Product,
+            members: ['Expr', 'Expr'],
           },
         },
         Name: {

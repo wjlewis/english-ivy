@@ -4,6 +4,7 @@ import { Grammar } from '../types/grammar';
 import { Action } from '../types/action';
 import * as actions from './actions';
 import { LayoutFn, generateLayout } from './layout';
+import { Zipper, createInhabitant } from './misc';
 import { TreeZipper } from '../tree-zipper';
 import './index.css';
 
@@ -30,7 +31,8 @@ const Buffer: React.FC<BufferProps> = props => {
     dispatch(actions.Input(evt.key));
   }
 
-  const Layout = generateLayout(props.layout, state.zipper.toTree());
+  const { tree, focused } = state.zipper.toTreePkg();
+  const Layout = generateLayout(props.layout, tree, focused);
 
   return (
     <div className="buffer" tabIndex={0} onKeyDown={handleKeyDown}>
@@ -42,12 +44,15 @@ const Buffer: React.FC<BufferProps> = props => {
 };
 
 export interface BufferState {
-  zipper: TreeZipper<any, any>;
+  zipper: Zipper;
   mode: BufferMode;
 }
 
 function initState(grammar: Grammar): BufferState {
-  throw new Error('unimpl!');
+  return {
+    zipper: TreeZipper.fromTree(createInhabitant(grammar, grammar.entry)),
+    mode: BufferMode.Normal,
+  };
 }
 
 function reducer(grammar: Grammar) {

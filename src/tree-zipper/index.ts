@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+import { Id } from '../types/misc';
+
 export class TreeZipper<A, B> {
   private focus: Tree<A, B>;
   private ctx: Ctx<A, B>;
@@ -9,7 +12,14 @@ export class TreeZipper<A, B> {
     return t;
   }
 
-  toTree(): Tree<A, B> {
+  toTreePkg(): TreePkg<A, B> {
+    const focused = this.focus.id;
+    const tree = this.toTree();
+
+    return { tree, focused };
+  }
+
+  private toTree(): Tree<A, B> {
     if (this.ctx.kind === CtxKind.AtRoot) {
       return this.focus;
     }
@@ -69,6 +79,7 @@ export class TreeZipper<A, B> {
       // contexts:
       parentCtx: this.ctx,
       parentData: this.focus.data,
+      parentId: this.focus.id,
       before: [],
       after: this.focus.children.slice(1),
     };
@@ -90,6 +101,7 @@ export class TreeZipper<A, B> {
     t.focus = {
       kind: TreeKind.Inner,
       data: this.ctx.parentData,
+      id: this.ctx.parentId,
       children,
     };
     // `toParent` removes a context from the chain:
@@ -141,23 +153,30 @@ export class TreeZipper<A, B> {
   }
 }
 
+export interface TreePkg<A, B> {
+  tree: Tree<A, B>;
+  focused: Id;
+}
+
 export type Tree<A, B> = Inner<A, B> | Leaf<A, B> | Todo<A>;
 
-export interface Inner<A, B> {
+export interface Inner<A, B> extends Common<A> {
   kind: TreeKind.Inner;
-  data: A;
   children: Tree<A, B>[];
 }
 
-export interface Leaf<A, B> {
+export interface Leaf<A, B> extends Common<A> {
   kind: TreeKind.Leaf;
-  data: A;
   content: B;
 }
 
-export interface Todo<A> {
+export interface Todo<A> extends Common<A> {
   kind: TreeKind.Todo;
+}
+
+export interface Common<A> {
   data: A;
+  id: Id;
 }
 
 export enum TreeKind {
@@ -175,6 +194,7 @@ interface AtRoot {
 interface ToChild<A, B> {
   kind: CtxKind.ToChild;
   parentData: A;
+  parentId: Id;
   parentCtx: Ctx<A, B>;
   before: Tree<A, B>[];
   after: Tree<A, B>[];

@@ -1,5 +1,13 @@
 .buffer {
-  width: 400px;
-  height: 600px;
-  border: 1px solid #444;
+  width: 50%;
+  height: 90%;
+  margin: 10px;
+  box-sizing: border-box;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buffer:focus {
+  box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.2);
 }
