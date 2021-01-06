@@ -1,6 +1,6 @@
 import React from 'react';
 import { useReducer } from '../hooks/useReducer';
-import { ExpansionKind, Grammar } from '../types/grammar';
+import { ExpansionKind, Grammar, ProductionName } from '../types/grammar';
 import { Action } from '../types/action';
 import * as actions from './actions';
 import { LayoutFn, generateLayout } from './layout';
@@ -12,6 +12,10 @@ import {
   toParent,
   toNextSibling,
   toPrevSibling,
+  toSumOptionsMode,
+  filterSumOptions,
+  returnToNormalMode,
+  selectSumOption,
 } from './misc';
 import { TreeZipper } from '../tree-zipper';
 import './index.css';
@@ -28,10 +32,12 @@ export enum BufferMode {
 }
 
 const Buffer: React.FC<BufferProps> = props => {
+  const bufferRef = React.useRef(null);
   const [state, dispatch] = useReducer(
     reducer(props.grammar),
     initState(props.grammar),
     translateAction(props.grammar),
+    refocusBuffer(bufferRef),
     log
   );
 
@@ -40,12 +46,21 @@ const Buffer: React.FC<BufferProps> = props => {
   }
 
   const { tree, focused } = state.zipper.toTreePkg();
-  const Layout = generateLayout(props.layout, tree, focused, state.mode);
+  const Layout = generateLayout(props.layout, tree, focused, state);
 
   return (
-    <div className="buffer" tabIndex={0} onKeyDown={handleKeyDown}>
+    <div
+      className="buffer"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      ref={bufferRef}
+    >
       <div className="tree">
-        <Layout state={state} onTerminalChange={console.log} />
+        <Layout
+          state={state}
+          onTerminalChange={t => console.log(t)}
+          onFilterChange={filter => dispatch(actions.FilterSumOptions(filter))}
+        />
       </div>
     </div>
   );
@@ -54,12 +69,16 @@ const Buffer: React.FC<BufferProps> = props => {
 export interface BufferState {
   zipper: Zipper;
   mode: BufferMode;
+  sumOptions: ProductionName[];
+  sumOptionsFilter: string;
 }
 
 function initState(grammar: Grammar): BufferState {
   return {
     zipper: TreeZipper.fromTree(createInhabitant(grammar, grammar.entry)),
     mode: BufferMode.Normal,
+    sumOptions: [],
+    sumOptionsFilter: '',
   };
 }
 
@@ -76,6 +95,14 @@ function reducer(grammar: Grammar) {
         return toPrevSibling(state);
       case actions.ActionType.ToNextSibling:
         return toNextSibling(state);
+      case actions.ActionType.ToSumOptionsMode:
+        return toSumOptionsMode(state, action.payload);
+      case actions.ActionType.FilterSumOptions:
+        return filterSumOptions(state, action.payload);
+      case actions.ActionType.ReturnToNormalMode:
+        return returnToNormalMode(state);
+      case actions.ActionType.SelectSumOption:
+        return selectSumOption(state, grammar);
       default:
         return state;
     }
@@ -96,16 +123,15 @@ function translateAction(grammar: Grammar) {
                 case 'i':
                   switch (focusedProd.expansion.kind) {
                     case ExpansionKind.Terminal:
-                      console.log('Switch to `TerminalInput` mode');
+                      // Switch to `TerminalInput` mode
                       break;
                     case ExpansionKind.Product:
                       // Do nothing: there is nothing to add to a product
                       break;
                     case ExpansionKind.Sum:
-                      console.log(
-                        'Swich to `SumOptions` mode and populate options'
+                      return dispatch(
+                        actions.ToSumOptionsMode(focusedProd.expansion.variants)
                       );
-                      break;
                     case ExpansionKind.Star:
                     case ExpansionKind.Plus:
                       return dispatch(
@@ -125,11 +151,38 @@ function translateAction(grammar: Grammar) {
           }
           break;
 
+        case BufferMode.SumOptions:
+          switch (action.type) {
+            case actions.ActionType.Input:
+              switch (action.payload) {
+                case 'Enter':
+                  return dispatch(actions.SelectSumOption());
+                case 'Escape':
+                  return dispatch(actions.ReturnToNormalMode());
+              }
+          }
+          break;
+
         default:
           break;
       }
 
       return dispatch(action);
+    };
+  };
+}
+
+function refocusBuffer(bufferRef: React.RefObject<HTMLDivElement>) {
+  return (state: BufferState, dispatch: React.Dispatch<Action>) => {
+    return (action: Action) => {
+      switch (action.type) {
+        case actions.ActionType.SelectSumOption:
+        case actions.ActionType.ReturnToNormalMode:
+          dispatch(action);
+          return bufferRef.current?.focus();
+        default:
+          return dispatch(action);
+      }
     };
   };
 }

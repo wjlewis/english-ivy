@@ -21,3 +21,17 @@
   border: 1px solid #aaa;
   margin: 0 5px;
 }
+
+.layout-container {
+  position: relative;
+}
+
+.todo-menu {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  border: 1px solid #aaa;
+  background-color: #f0f0f0;
+  box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.2);
+}

@@ -8,6 +8,10 @@ export enum ActionType {
   ToParent = 'ToParent',
   ToNextSibling = 'ToNextSibling',
   ToPrevSibling = 'ToPrevSibling',
+  ToSumOptionsMode = 'ToSumOptionsMode',
+  FilterSumOptions = 'FilterSumOptions',
+  SelectSumOption = 'SelectSumOption',
+  ReturnToNormalMode = 'ReturnToNormalMode',
 }
 
 export function Input(key: string): Action {
@@ -45,5 +49,31 @@ export function ToNextSibling(): Action {
 export function ToPrevSibling(): Action {
   return {
     type: ActionType.ToPrevSibling,
+  };
+}
+
+export function ToSumOptionsMode(variants: ProductionName[]): Action {
+  return {
+    type: ActionType.ToSumOptionsMode,
+    payload: variants,
+  };
+}
+
+export function FilterSumOptions(filter: string): Action {
+  return {
+    type: ActionType.FilterSumOptions,
+    payload: filter,
+  };
+}
+
+export function SelectSumOption(): Action {
+  return {
+    type: ActionType.SelectSumOption,
+  };
+}
+
+export function ReturnToNormalMode(): Action {
+  return {
+    type: ActionType.ReturnToNormalMode,
   };
 }

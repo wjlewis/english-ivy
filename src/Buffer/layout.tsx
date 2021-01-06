@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { BufferMode, BufferState } from './index';
-import { BufferTree } from './misc';
+import { BufferTree, filteredSumOptions } from './misc';
 import { TreeKind } from '../tree-zipper';
 import { Id } from '../types/misc';
 
@@ -11,14 +11,15 @@ export type RecLayoutFn = (tree: BufferTree) => JSX.Element;
 
 export interface LayoutProps {
   state: BufferState;
-  onTerminalChange: (path: string[], value: string) => any;
+  onTerminalChange: (value: string) => any;
+  onFilterChange: (value: string) => any;
 }
 
 export function generateLayout(
   layout: LayoutFn,
   tree: BufferTree,
   focused: Id,
-  mode: BufferMode
+  state: BufferState
 ): React.FC<LayoutProps> {
   return props => {
     // This component renders the user's desired layout while wrapping subtrees
@@ -26,12 +27,30 @@ export function generateLayout(
     // invoke `generateLayout` in order to "wrap" subtrees.
     const UserLayout = () =>
       layout(tree, subtree => {
-        const Subtree = generateLayout(layout, subtree, focused, mode);
+        const Subtree = generateLayout(layout, subtree, focused, state);
 
         return <Subtree {...props} key={subtree.id} />;
       });
 
     const isFocused = focused === tree.id;
+
+    function handleTerminalChange(e: React.ChangeEvent<HTMLInputElement>) {
+      props.onTerminalChange(e.target.value);
+    }
+
+    function handleFilterChange(e: React.ChangeEvent<HTMLInputElement>) {
+      props.onFilterChange(e.target.value);
+    }
+
+    function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+      switch (e.key) {
+        case 'Enter':
+        case 'Escape':
+          break;
+        default:
+          e.stopPropagation();
+      }
+    }
 
     switch (tree.kind) {
       case TreeKind.Inner:
@@ -47,10 +66,13 @@ export function generateLayout(
           <div
             className={classNames('layout-container', { focused: isFocused })}
           >
-            {mode !== BufferMode.TerminalInput ? (
-              <UserLayout />
+            {state.mode === BufferMode.TerminalInput ? (
+              <input
+                onChange={handleTerminalChange}
+                onKeyDown={handleKeyDown}
+              />
             ) : (
-              <input onChange={evt => console.log(evt.target.value)} />
+              <UserLayout />
             )}
           </div>
         );
@@ -60,6 +82,23 @@ export function generateLayout(
             className={classNames('layout-container', { focused: isFocused })}
           >
             <div className="todo"></div>
+
+            {state.mode === BufferMode.SumOptions && isFocused && (
+              <div className="todo-menu">
+                <input
+                  autoFocus
+                  value={state.sumOptionsFilter}
+                  onChange={handleFilterChange}
+                  onKeyDown={handleKeyDown}
+                  key="__filter"
+                />
+                {filteredSumOptions(state).map(opt => (
+                  <div className="todo-menu__option" key={opt}>
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
     }

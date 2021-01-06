@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { BufferState } from '.';
+import { BufferMode, BufferState } from '.';
 import { Tree, TreeKind, TreeZipper, Inner } from '../tree-zipper';
 import { Grammar, ProductionName, ExpansionKind } from '../types/grammar';
 
@@ -93,4 +93,65 @@ export function toPrevSibling(state: BufferState): BufferState {
     ...state,
     zipper: state.zipper.toPrevSibling(),
   };
+}
+
+export function toSumOptionsMode(
+  state: BufferState,
+  variants: ProductionName[]
+): BufferState {
+  return {
+    ...state,
+    mode: BufferMode.SumOptions,
+    sumOptions: variants,
+  };
+}
+
+export function filterSumOptions(
+  state: BufferState,
+  filter: string
+): BufferState {
+  return {
+    ...state,
+    sumOptionsFilter: filter,
+  };
+}
+
+export function returnToNormalMode(state: BufferState): BufferState {
+  return {
+    ...state,
+    mode: BufferMode.Normal,
+    sumOptions: [],
+    sumOptionsFilter: '',
+  };
+}
+
+export function selectSumOption(
+  state: BufferState,
+  grammar: Grammar
+): BufferState {
+  const filtered = filteredSumOptions(state);
+
+  if (filtered.length === 0) {
+    return state;
+  }
+
+  const subtree = createInhabitant(grammar, filtered[0]);
+
+  return {
+    ...returnToNormalMode(state),
+    // THINK Write a general-purpose updating function for objects
+    zipper: state.zipper.withFocus(focus => ({
+      ...subtree,
+      data: {
+        ...subtree.data,
+        prodPath: [...subtree.data.prodPath, focus.data.prodPath[0]],
+      },
+    })),
+  };
+}
+
+export function filteredSumOptions(state: BufferState): ProductionName[] {
+  return state.sumOptions.filter(opt =>
+    opt.toLowerCase().startsWith(state.sumOptionsFilter.toLowerCase())
+  );
 }
