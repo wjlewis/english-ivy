@@ -21,56 +21,47 @@ export function generateLayout(
   mode: BufferMode
 ): React.FC<LayoutProps> {
   return props => {
-    const self = (tree: BufferTree) => {
-      const Layout = generateLayout(layout, tree, focused, mode);
-      return wrap(<Layout {...props} />, props, tree, focused, mode);
-    };
+    // This component renders the user's desired layout while wrapping subtrees
+    // appropriately. Note the second argument to `layout`: here we recursively
+    // invoke `generateLayout` in order to "wrap" subtrees.
+    const UserLayout = () =>
+      layout(tree, subtree => {
+        const Subtree = generateLayout(layout, subtree, focused, mode);
 
-    // THINK Is there a way to avoid calling `wrap` from two separate places?
-    return wrap(layout(tree, self), props, tree, focused, mode);
+        return <Subtree {...props} key={subtree.id} />;
+      });
+
+    const isFocused = focused === tree.id;
+
+    switch (tree.kind) {
+      case TreeKind.Inner:
+        return (
+          <div
+            className={classNames('layout-container', { focused: isFocused })}
+          >
+            <UserLayout />
+          </div>
+        );
+      case TreeKind.Leaf:
+        return (
+          <div
+            className={classNames('layout-container', { focused: isFocused })}
+          >
+            {mode !== BufferMode.TerminalInput ? (
+              <UserLayout />
+            ) : (
+              <input onChange={evt => console.log(evt.target.value)} />
+            )}
+          </div>
+        );
+      case TreeKind.Todo:
+        return (
+          <div
+            className={classNames('layout-container', { focused: isFocused })}
+          >
+            <div className="todo"></div>
+          </div>
+        );
+    }
   };
-}
-
-function wrap(
-  elt: JSX.Element,
-  props: LayoutProps,
-  tree: BufferTree,
-  focused: Id,
-  mode: BufferMode
-): JSX.Element {
-  const isFocused = focused === tree.id;
-
-  switch (tree.kind) {
-    case TreeKind.Inner:
-      return (
-        <div
-          className={classNames('layout-container', { focused: isFocused })}
-          key={tree.id}
-        >
-          {elt}
-        </div>
-      );
-    case TreeKind.Leaf:
-      return (
-        <div
-          className={classNames('layout-container', { focused: isFocused })}
-          key={tree.id}
-        >
-          {mode !== BufferMode.TerminalInput ? (
-            { elt }
-          ) : (
-            <input onChange={evt => console.log(evt.target.value)} />
-          )}
-        </div>
-      );
-    case TreeKind.Todo:
-      return (
-        <div
-          className={classNames('layout-container', { focused: isFocused })}
-          key={tree.id}
-        >
-          <div className="todo"></div>
-        </div>
-      );
-  }
 }

@@ -57,6 +57,7 @@ const layout = (tree: BufferTree, self: RecLayoutFn): JSX.Element => {
       }
       break;
   }
+
   throw new Error('unreachable');
 };
 
