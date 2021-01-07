@@ -22,6 +22,8 @@ export function generateLayout(
   state: BufferState
 ): React.FC<LayoutProps> {
   return props => {
+    const filterRef = useVolatileInput();
+
     // This component renders the user's desired layout while wrapping subtrees
     // appropriately. Note the second argument to `layout`: here we recursively
     // invoke `generateLayout` in order to "wrap" subtrees.
@@ -86,11 +88,10 @@ export function generateLayout(
             {state.mode === BufferMode.SumOptions && isFocused && (
               <div className="todo-menu">
                 <input
-                  autoFocus
+                  ref={filterRef}
                   value={state.sumOptionsFilter}
                   onChange={handleFilterChange}
                   onKeyDown={handleKeyDown}
-                  key="__filter"
                 />
                 {filteredSumOptions(state).map(opt => (
                   <div className="todo-menu__option" key={opt}>
@@ -103,4 +104,13 @@ export function generateLayout(
         );
     }
   };
+}
+
+function useVolatileInput() {
+  const ref: React.RefObject<HTMLInputElement> = React.useRef(null);
+  React.useEffect(() => {
+    ref.current?.focus();
+  }, []);
+
+  return ref;
 }
