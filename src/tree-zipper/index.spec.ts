@@ -198,4 +198,15 @@ describe('TreeZipper', () => {
       focused: '3',
     });
   });
+
+  it("Doesn't allow downward navigation if `children` is empty", () => {
+    const z = TreeZipper.fromTree({
+      kind: TreeKind.Inner,
+      data: 42,
+      id: '0',
+      children: [],
+    });
+
+    expect(z.toFirstChild()).toEqual(z);
+  });
 });

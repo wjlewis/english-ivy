@@ -67,7 +67,10 @@ export class TreeZipper<A, B> {
   }
 
   toFirstChild(): TreeZipper<A, B> {
-    if (this.focus.kind !== TreeKind.Inner) {
+    if (
+      this.focus.kind !== TreeKind.Inner ||
+      this.focus.children.length === 0
+    ) {
       return this;
     }
 
@@ -190,8 +193,8 @@ export interface Common<A> {
 export enum TreeKind {
   Inner = 'Inner',
   Leaf = 'Leaf',
-  SumTodo = 'Todo',
-  TerminalTodo = 'TodoTerminal',
+  SumTodo = 'SumTodo',
+  TerminalTodo = 'TerminalTodo',
 }
 
 type Ctx<A, B> = AtRoot | ToChild<A, B>;
