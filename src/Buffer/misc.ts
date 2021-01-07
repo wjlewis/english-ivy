@@ -23,9 +23,13 @@ export function createInhabitant(
 
   switch (prod.expansion.kind) {
     case ExpansionKind.Terminal:
+      return {
+        kind: TreeKind.TerminalTodo,
+        ...common,
+      };
     case ExpansionKind.Sum:
       return {
-        kind: TreeKind.Todo,
+        kind: TreeKind.SumTodo,
         ...common,
       };
     case ExpansionKind.Product:
@@ -122,6 +126,7 @@ export function returnToNormalMode(state: BufferState): BufferState {
     mode: BufferMode.Normal,
     sumOptions: [],
     sumOptionsFilter: '',
+    terminalValue: '',
   };
 }
 
@@ -138,7 +143,7 @@ export function selectSumOption(
   const subtree = createInhabitant(grammar, filtered[0]);
 
   return {
-    ...returnToNormalMode(state),
+    ...state,
     // THINK Write a general-purpose updating function for objects
     zipper: state.zipper.withFocus(focus => ({
       ...subtree,
@@ -154,4 +159,33 @@ export function filteredSumOptions(state: BufferState): ProductionName[] {
   return state.sumOptions.filter(opt =>
     opt.toLowerCase().startsWith(state.sumOptionsFilter.toLowerCase())
   );
+}
+
+export function toTerminalInputMode(state: BufferState): BufferState {
+  const focus = state.zipper.getFocus();
+  const terminalValue = focus.kind === TreeKind.Leaf ? focus.content : '';
+
+  return {
+    ...state,
+    mode: BufferMode.TerminalInput,
+    terminalValue,
+  };
+}
+
+export function updateTerminal(state: BufferState, value: string): BufferState {
+  return {
+    ...state,
+    terminalValue: value,
+  };
+}
+
+export function commitTerminalValue(state: BufferState): BufferState {
+  return {
+    ...state,
+    zipper: state.zipper.withFocus(focus => ({
+      ...focus,
+      kind: TreeKind.Leaf,
+      content: state.terminalValue,
+    })),
+  };
 }

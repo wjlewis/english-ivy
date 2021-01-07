@@ -16,6 +16,9 @@ import {
   filterSumOptions,
   returnToNormalMode,
   selectSumOption,
+  toTerminalInputMode,
+  updateTerminal,
+  commitTerminalValue,
 } from './misc';
 import { TreeZipper } from '../tree-zipper';
 import './index.css';
@@ -58,7 +61,7 @@ const Buffer: React.FC<BufferProps> = props => {
       <div className="tree">
         <Layout
           state={state}
-          onTerminalChange={t => console.log(t)}
+          onTerminalChange={t => dispatch(actions.UpdateTerminal(t))}
           onFilterChange={filter => dispatch(actions.FilterSumOptions(filter))}
         />
       </div>
@@ -71,6 +74,7 @@ export interface BufferState {
   mode: BufferMode;
   sumOptions: ProductionName[];
   sumOptionsFilter: string;
+  terminalValue: string;
 }
 
 function initState(grammar: Grammar): BufferState {
@@ -79,6 +83,7 @@ function initState(grammar: Grammar): BufferState {
     mode: BufferMode.Normal,
     sumOptions: [],
     sumOptionsFilter: '',
+    terminalValue: '',
   };
 }
 
@@ -103,6 +108,12 @@ function reducer(grammar: Grammar) {
         return returnToNormalMode(state);
       case actions.ActionType.SelectSumOption:
         return selectSumOption(state, grammar);
+      case actions.ActionType.ToTerminalInputMode:
+        return toTerminalInputMode(state);
+      case actions.ActionType.UpdateTerminal:
+        return updateTerminal(state, action.payload);
+      case actions.ActionType.CommitTerminalValue:
+        return commitTerminalValue(state);
       default:
         return state;
     }
@@ -123,8 +134,7 @@ function translateAction(grammar: Grammar) {
                 case 'i':
                   switch (focusedProd.expansion.kind) {
                     case ExpansionKind.Terminal:
-                      // Switch to `TerminalInput` mode
-                      break;
+                      return dispatch(actions.ToTerminalInputMode());
                     case ExpansionKind.Product:
                       // Do nothing: there is nothing to add to a product
                       break;
@@ -156,7 +166,8 @@ function translateAction(grammar: Grammar) {
             case actions.ActionType.Input:
               switch (action.payload) {
                 case 'Enter':
-                  return dispatch(actions.SelectSumOption());
+                  dispatch(actions.SelectSumOption());
+                  return dispatch(actions.ReturnToNormalMode());
                 case 'Escape':
                   return dispatch(actions.ReturnToNormalMode());
               }
@@ -165,6 +176,18 @@ function translateAction(grammar: Grammar) {
 
         default:
           break;
+
+        case BufferMode.TerminalInput:
+          switch (action.type) {
+            case actions.ActionType.Input:
+              switch (action.payload) {
+                case 'Enter':
+                  dispatch(actions.CommitTerminalValue());
+                  return dispatch(actions.ReturnToNormalMode());
+                case 'Escape':
+                  return dispatch(actions.ReturnToNormalMode());
+              }
+          }
       }
 
       return dispatch(action);

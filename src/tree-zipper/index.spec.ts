@@ -18,7 +18,7 @@ describe('TreeZipper', () => {
             content: 1,
           },
           {
-            kind: TreeKind.Todo,
+            kind: TreeKind.SumTodo,
             id: '3',
             data: 'E',
           },
@@ -101,7 +101,7 @@ describe('TreeZipper', () => {
                 content: 1,
               },
               {
-                kind: TreeKind.Todo,
+                kind: TreeKind.SumTodo,
                 data: 'E1',
                 id: '3',
               },
@@ -138,7 +138,7 @@ describe('TreeZipper', () => {
       ...t,
       children: [
         {
-          kind: TreeKind.Todo,
+          kind: TreeKind.SumTodo,
           data: 1,
           id: '1',
         },
@@ -165,7 +165,7 @@ describe('TreeZipper', () => {
       children: [
         ...(t as Inner<number, string>).children,
         {
-          kind: TreeKind.Todo,
+          kind: TreeKind.SumTodo,
           data: 5,
           id: '3',
         },
@@ -189,7 +189,7 @@ describe('TreeZipper', () => {
             content: 'test',
           },
           {
-            kind: TreeKind.Todo,
+            kind: TreeKind.SumTodo,
             data: 5,
             id: '3',
           },

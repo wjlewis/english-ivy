@@ -12,6 +12,9 @@ export enum ActionType {
   FilterSumOptions = 'FilterSumOptions',
   SelectSumOption = 'SelectSumOption',
   ReturnToNormalMode = 'ReturnToNormalMode',
+  ToTerminalInputMode = 'ToTerminalInputMode',
+  UpdateTerminal = 'UpdateTerminal',
+  CommitTerminalValue = 'CommitTerminalValue',
 }
 
 export function Input(key: string): Action {
@@ -75,5 +78,24 @@ export function SelectSumOption(): Action {
 export function ReturnToNormalMode(): Action {
   return {
     type: ActionType.ReturnToNormalMode,
+  };
+}
+
+export function ToTerminalInputMode(): Action {
+  return {
+    type: ActionType.ToTerminalInputMode,
+  };
+}
+
+export function UpdateTerminal(value: string): Action {
+  return {
+    type: ActionType.UpdateTerminal,
+    payload: value,
+  };
+}
+
+export function CommitTerminalValue(): Action {
+  return {
+    type: ActionType.CommitTerminalValue,
   };
 }

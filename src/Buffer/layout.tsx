@@ -22,6 +22,7 @@ export function generateLayout(
   state: BufferState
 ): React.FC<LayoutProps> {
   return props => {
+    const terminalRef = useVolatileInput();
     const filterRef = useVolatileInput();
 
     // This component renders the user's desired layout while wrapping subtrees
@@ -63,13 +64,16 @@ export function generateLayout(
             <UserLayout />
           </div>
         );
+
       case TreeKind.Leaf:
         return (
           <div
             className={classNames('layout-container', { focused: isFocused })}
           >
-            {state.mode === BufferMode.TerminalInput ? (
+            {state.mode === BufferMode.TerminalInput && isFocused ? (
               <input
+                ref={terminalRef}
+                value={state.terminalValue}
                 onChange={handleTerminalChange}
                 onKeyDown={handleKeyDown}
               />
@@ -78,7 +82,26 @@ export function generateLayout(
             )}
           </div>
         );
-      case TreeKind.Todo:
+
+      case TreeKind.TerminalTodo:
+        return (
+          <div
+            className={classNames('layout-container', { focused: isFocused })}
+          >
+            {state.mode === BufferMode.TerminalInput && isFocused ? (
+              <input
+                ref={terminalRef}
+                value={state.terminalValue}
+                onChange={handleTerminalChange}
+                onKeyDown={handleKeyDown}
+              />
+            ) : (
+              <div className="todo"></div>
+            )}
+          </div>
+        );
+
+      case TreeKind.SumTodo:
         return (
           <div
             className={classNames('layout-container', { focused: isFocused })}

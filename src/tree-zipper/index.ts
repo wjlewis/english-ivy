@@ -158,7 +158,11 @@ export interface TreePkg<A, B> {
   focused: Id;
 }
 
-export type Tree<A, B> = Inner<A, B> | Leaf<A, B> | Todo<A>;
+export type Tree<A, B> =
+  | Inner<A, B>
+  | Leaf<A, B>
+  | SumTodo<A>
+  | TerminalTodo<A>;
 
 export interface Inner<A, B> extends Common<A> {
   kind: TreeKind.Inner;
@@ -170,8 +174,12 @@ export interface Leaf<A, B> extends Common<A> {
   content: B;
 }
 
-export interface Todo<A> extends Common<A> {
-  kind: TreeKind.Todo;
+export interface SumTodo<A> extends Common<A> {
+  kind: TreeKind.SumTodo;
+}
+
+export interface TerminalTodo<A> extends Common<A> {
+  kind: TreeKind.TerminalTodo;
 }
 
 export interface Common<A> {
@@ -182,7 +190,8 @@ export interface Common<A> {
 export enum TreeKind {
   Inner = 'Inner',
   Leaf = 'Leaf',
-  Todo = 'Todo',
+  SumTodo = 'Todo',
+  TerminalTodo = 'TodoTerminal',
 }
 
 type Ctx<A, B> = AtRoot | ToChild<A, B>;
